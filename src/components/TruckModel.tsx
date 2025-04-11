@@ -16,9 +16,9 @@ const TruckModel = ({ gyro }) => {
   // You might want to smooth or scale these values depending on your data.
   useFrame(() => {
     if (truckRef.current) {
-      truckRef.current.rotation.x = gyro.x;
-      truckRef.current.rotation.y = gyro.y;
-      truckRef.current.rotation.z = gyro.z;
+      truckRef.current.rotation.x = gyro.x*1.6;
+      truckRef.current.rotation.y = gyro.y*1.6;
+      truckRef.current.rotation.z = gyro.z*1.6;
     }
   });
 
