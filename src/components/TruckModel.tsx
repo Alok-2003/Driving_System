@@ -1,5 +1,5 @@
 // TruckModel.jsx
-import React, { useRef } from 'react';
+import  { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 
