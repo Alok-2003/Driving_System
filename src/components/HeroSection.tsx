@@ -36,11 +36,11 @@ export default function HeroSection() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
-              <button
+              <a href='dashboard/driver-score'
                 className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-6 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
               >
                 Get Started
-              </button>
+              </a>
             </motion.div>
           </div>
         </div>

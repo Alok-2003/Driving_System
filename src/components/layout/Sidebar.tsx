@@ -25,7 +25,7 @@ const navItems: NavItem[] = [
   { label: 'Register New Driver', href: '/dashboard/register-new-driver', icon: <User size={20} /> },
   { label: 'User Form', href: '/dashboard/user-data-form', icon: <FileText size={20} /> },
   { label: 'Truck Allocation', href: '/dashboard/truck-allocation', icon: <Truck size={20} /> },
-  { label: 'Vehicle Tracking', href: '/dashboard/truck', icon: <MapPin size={20} /> },
+  { label: 'Vehicle Tracking', href: '/dashboard/vehicle-tracking', icon: <MapPin size={20} /> },
   { label: 'Driver Score', href: '/dashboard/driver-score', icon: <Star size={20} /> },
   { label: 'Settings', href: '/dashboard/settings', icon: <Settings size={20} /> },
 ];

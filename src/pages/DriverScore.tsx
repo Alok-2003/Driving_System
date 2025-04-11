@@ -12,6 +12,7 @@ const getDriverDetails = () => ({
   phoneNumber: "+91 98765 43210",
   age: 38,
   drivingLicense: "DL1234567890",
+  Score:100,
   trucksAllocated: [
     {
       truckName: "Tata 407",
@@ -180,7 +181,7 @@ export default function DriverDetailsPage() {
     const magnitude = Math.sqrt(accel.x ** 2 + accel.z ** 2);
     const now = Date.now();
 
-    if (magnitude > 5 && !isHighAccel && now - lastAccelToastTime.current > 3000) {
+    if (magnitude > 1.3 && !isHighAccel && now - lastAccelToastTime.current > 3000) {
       lastAccelToastTime.current = now;
       setRapidAccelCount((prev) => prev + 1);
       toast.error("High acceleration detected!");
@@ -193,29 +194,29 @@ export default function DriverDetailsPage() {
 
   const lastRashToastTime = useRef<number>(0);
 
-useEffect(() => {
-  const rashThreshold = 0.2; // threshold in radians for gyro (wavy motion)
-  const accelThreshold = 2; // threshold (in m/s² or your unit) for acceleration verification
-  const now = Date.now();
-  const accelMagnitude = Math.sqrt(accel.x ** 2 + accel.z ** 2);
-  
-  if (
-    (Math.abs(gyro.x) > rashThreshold || Math.abs(gyro.z) > rashThreshold) &&
-    accelMagnitude > accelThreshold &&
-    now - lastRashToastTime.current > 3000 // 3-second delay
-  ) {
-    lastRashToastTime.current = now;
-    setRashDriving((prev) => prev + 1);
-    toast("Rash driving detected!", { icon: "🚗" });
-  }
-}, [gyro, accel]);
+  useEffect(() => {
+    const rashThreshold = 0.5; // threshold in radians for gyro (wavy motion)
+    const accelThreshold = 3; // threshold (in m/s² or your unit) for acceleration verification
+    const now = Date.now();
+    const accelMagnitude = Math.sqrt(accel.x ** 2 + accel.z ** 2);
+
+    if (
+      (Math.abs(gyro.x) > rashThreshold || Math.abs(gyro.z) > rashThreshold) &&
+      accelMagnitude > accelThreshold &&
+      now - lastRashToastTime.current > 3000 // 3-second delay
+    ) {
+      lastRashToastTime.current = now;
+      setRashDriving((prev) => prev + 1);
+      toast("Rash driving detected!", { icon: "🚗" });
+    }
+  }, [gyro, accel]);
 
 
   // Add this near your other useState declarations:
   const lastVibrationToastTime = useRef<number>(0);
   useEffect(() => {
-    const vibrationLowerThreshold = 10;
-    const vibrationUpperThreshold = 15; // prevent counting strong impacts
+    const vibrationLowerThreshold = 2;
+    const vibrationUpperThreshold = 3; // prevent counting strong impacts
     if (
       Math.abs(accel.z) >= vibrationLowerThreshold &&
       Math.abs(accel.z) <= vibrationUpperThreshold
@@ -231,7 +232,7 @@ useEffect(() => {
 
 
   useEffect(() => {
-    const brakingThreshold = -5; // If accel.x is less than -5 m/s², consider it harsh braking
+    const brakingThreshold = -3 // If accel.x is less than -5 m/s², consider it harsh braking
     if (accel.x < brakingThreshold) {
       const now = Date.now();
       if (now - lastBrakingToastTime.current > 2000) { // 2 seconds delay
@@ -279,7 +280,7 @@ useEffect(() => {
   return (
     <div className="h-full overflow-y-auto bg-gray-50">
       <div className="fixed top-0 z-10 right-0 overflow-hidden max-h-screen w-[300px]">
-        <Toaster position="top-center" toastOptions={{ duration: 1000 }} />
+        <Toaster position="top-center" toastOptions={{ duration: 500 }} />
       </div>
       <div className="container mx-auto py-10 px-4 bg-white z-50">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-10 text-center">
@@ -290,14 +291,14 @@ useEffect(() => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Rash Driving Card */}
           <div className="rounded-xl shadow-lg p-4 bg-red-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Rash Driving</h2>
+            <h2 className="text-xl text-center font-semibold text-gray-700 mb-2">Rash Driving</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-red-600">{rashDriving}</p>
             </div>
           </div>
 
           <div className="rounded-xl shadow-lg p-4 bg-yellow-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Harsh Acceleration</h2>
+            <h2 className="text-xl text-center font-semibold text-gray-700 mb-2">Harsh Acceleration</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-yellow-600">
                 {rapidAccelCount}
@@ -306,14 +307,14 @@ useEffect(() => {
           </div>
           {/* Rough Road Vibration Card */}
           <div className="rounded-xl shadow-lg p-4 bg-green-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Rough Road Vibration</h2>
+            <h2 className="text-xl text-center font-semibold text-gray-700 mb-2">Rough Road Vibration</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-green-600">{roughVibration}</p>
             </div>
           </div>
           {/* Harsh Braking Card */}
           <div className="rounded-xl shadow-lg p-4 bg-orange-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Harsh Braking</h2>
+            <h2 className="text-xl text-center  font-semibold text-gray-700 mb-2">Harsh Braking</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-orange-600">
                 {harshBraking}
@@ -321,31 +322,40 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Curve Speed Limit Exceeded Card
-          <div className="rounded-xl shadow-lg p-4 bg-purple-100 transition-all transform hover:scale-105">
+           {/* Curve Speed Limit Exceeded Card */}
+          {/* <div className="rounded-xl shadow-lg p-4 bg-purple-100 transition-all transform hover:scale-105">
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Curve Speed Limit Exceeded</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-purple-600">{curveSpeedCount}</p>
             </div>
-          </div>
+          </div> */}
 
           <div className="rounded-xl shadow-lg p-4 bg-blue-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Driver Behaviour Score </h2>
+            <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2">Driver Behaviour Score </h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-blue-600">
-                0
+               {driver.Score}
               </p>
             </div>
           </div>
           {/* Linear Current Speed Card */}
-          {/* <div className="rounded-xl shadow-lg p-4 bg-indigo-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Linear Current Speed</h2>
+          <div className="rounded-xl shadow-lg p-4 bg-indigo-100 transition-all transform hover:scale-105">
+            <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2">Voilated Speed limit Count</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-indigo-600">
-                {linearSpeed.toFixed(2)} m/s
+                {linearSpeed} 
               </p>
             </div>
-          </div> */} 
+          </div>
+          {/*  Speed Limit Card */}
+          <div className="rounded-xl col-span-2 shadow-lg p-4 bg-indigo-100 transition-all transform hover:scale-105">
+          <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2"> Current Road Speed Limit</h2>
+            <div className="text-center">
+              <p className="text-5xl font-bold text-red-600">
+                {linearSpeed.toFixed(2)} Km/h
+              </p>
+            </div>
+          </div>
 
         </div>
 

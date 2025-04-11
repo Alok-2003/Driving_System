@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import TruckPage from './pages/TruckPage';
 import UserForm from './pages/UserForm';
 import DriverDetailsPage from './pages/DriverScore';
+import VehicleTracking from './pages/VehicleTracking';
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
         {/* Home page rendered without layout */}
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Layout />}>
-          <Route path="truck" element={<TruckPage />} />
+          <Route path="vehicle-tracking" element={<VehicleTracking />} />
           {/* You can add additional dashboard routes here */}
           <Route path="form" element={<UserForm />} />
           <Route path="driver-score" element={<DriverDetailsPage />} />

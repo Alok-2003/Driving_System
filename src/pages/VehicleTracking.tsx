@@ -3,7 +3,7 @@ import MapView from '../components/map-view'
 
 const VehicleTracking = () => {
   return (
-    <div>
+    <div className='p-4' >
         <MapView/>
     </div>
   )
