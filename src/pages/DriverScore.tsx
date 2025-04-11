@@ -58,6 +58,13 @@ export default function DriverDetailsPage() {
   const [roughVibration, setRoughVibration] = useState<number>(0);
   const [harshBraking, setHarshBraking] = useState<number>(driver.hardBrake);
   const lastBrakingToastTime = useRef<number>(0);
+  const [curveSpeedCount, setCurveSpeedCount] = useState<number>(0);
+  const [isCurveSpeedExceeded, setIsCurveSpeedExceeded] = useState<boolean>(false);
+  // New state for coordinates and computed speed
+  const [prevCoord, setPrevCoord] = useState<{ x: number; y: number; time: number } | null>(null);
+  const [linearSpeed, setLinearSpeed] = useState<number>(0);
+
+
 
   // State for real-time WebSocket data for gyro (rotation) and acceleration.
   const [gyro, setGyro] = useState({ x: 0, y: 0, z: 0 });
@@ -129,6 +136,26 @@ export default function DriverDetailsPage() {
         ) {
           setAccel(data.accel);
         }
+        // Update coordinate and compute speed if "coord" is provided in the incoming data
+        if (
+          data.coord &&
+          typeof data.coord.x === "number" &&
+          typeof data.coord.y === "number"
+        ) {
+          const now = Date.now();
+          if (prevCoord) {
+            const dt = (now - prevCoord.time) / 1000; // time difference in seconds
+            const dx = data.coord.x - prevCoord.x;
+            const dy = data.coord.y - prevCoord.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            // Calculate speed in m/s (adjust units as needed)
+            const speed = dt > 0 ? distance / dt : 0;
+            setLinearSpeed(speed);
+          }
+          // Update previous coordinate with the latest coordinate and timestamp
+          setPrevCoord({ x: data.coord.x, y: data.coord.y, time: now });
+        }
+
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
       }
@@ -146,43 +173,62 @@ export default function DriverDetailsPage() {
       ws.close();
     };
   }, []);
-
+  const lastAccelToastTime = useRef<number>(0);
   // useEffect to check for high acceleration events (magnitude > 20 m/s²)
   useEffect(() => {
     // Compute acceleration magnitude
-    const magnitude = Math.sqrt(accel.x ** 2 + accel.y ** 2 + accel.z ** 2);
-    if (magnitude > 40 && !isHighAccel) {
+    const magnitude = Math.sqrt(accel.x ** 2 + accel.z ** 2);
+    const now = Date.now();
+
+    if (magnitude > 5 && !isHighAccel && now - lastAccelToastTime.current > 3000) {
+      lastAccelToastTime.current = now;
       setRapidAccelCount((prev) => prev + 1);
       toast.error("High acceleration detected!");
       setIsHighAccel(true);
-    } else if (magnitude <= 20 && isHighAccel) {
+    } else if (magnitude <= 10 && isHighAccel) {
       // Reset flag once acceleration drops below threshold
       setIsHighAccel(false);
     }
   }, [accel, isHighAccel]);
 
-  useEffect(() => {
-    // Threshold for detecting a wavy (snake-like) motion for rash driving
-    const rashThreshold = 0.5; // example threshold in radians
-    if (Math.abs(gyro.x) > rashThreshold || Math.abs(gyro.y) > rashThreshold) {
-      // Increment rash driving count if threshold is exceeded
-      setRashDriving(prev => prev + 1);
-      toast("Rash driving detected!", { icon: "🚗" });
-    }
-  }, [gyro]);
+  const lastRashToastTime = useRef<number>(0);
 
+useEffect(() => {
+  const rashThreshold = 0.2; // threshold in radians for gyro (wavy motion)
+  const accelThreshold = 2; // threshold (in m/s² or your unit) for acceleration verification
+  const now = Date.now();
+  const accelMagnitude = Math.sqrt(accel.x ** 2 + accel.z ** 2);
+  
+  if (
+    (Math.abs(gyro.x) > rashThreshold || Math.abs(gyro.z) > rashThreshold) &&
+    accelMagnitude > accelThreshold &&
+    now - lastRashToastTime.current > 3000 // 3-second delay
+  ) {
+    lastRashToastTime.current = now;
+    setRashDriving((prev) => prev + 1);
+    toast("Rash driving detected!", { icon: "🚗" });
+  }
+}, [gyro, accel]);
+
+
+  // Add this near your other useState declarations:
+  const lastVibrationToastTime = useRef<number>(0);
   useEffect(() => {
-    // Threshold for slight but repetitive vibrations
     const vibrationLowerThreshold = 10;
     const vibrationUpperThreshold = 15; // prevent counting strong impacts
     if (
       Math.abs(accel.z) >= vibrationLowerThreshold &&
       Math.abs(accel.z) <= vibrationUpperThreshold
     ) {
-      setRoughVibration(prev => prev + 1);
-      toast("Rough road vibration detected!", { icon: "🛣️" });
+      const now = Date.now();
+      if (now - lastVibrationToastTime.current > 2000) { // 2-second delay between alerts
+        lastVibrationToastTime.current = now;
+        setRoughVibration(prev => prev + 1);
+        toast("Rough road vibration detected!", { icon: "🛣️" });
+      }
     }
   }, [accel.z]);
+
 
   useEffect(() => {
     const brakingThreshold = -5; // If accel.x is less than -5 m/s², consider it harsh braking
@@ -195,6 +241,23 @@ export default function DriverDetailsPage() {
       }
     }
   }, [accel.x]);
+
+  useEffect(() => {
+    if (maxTurnableSpeed !== null) {
+      // Define a safe curve speed threshold (e.g., if measured speed exceeds 8 m/s, it's too high for a curve)
+      const curveThreshold = 8;
+      if (maxTurnableSpeed > curveThreshold && !isCurveSpeedExceeded) {
+        setCurveSpeedCount((prev) => prev + 1);
+        toast.error("Curve speed limit exceeded!", { icon: "⚡" });
+        setIsCurveSpeedExceeded(true);
+      } else if (maxTurnableSpeed <= curveThreshold && isCurveSpeedExceeded) {
+        setIsCurveSpeedExceeded(false);
+      }
+    }
+  }, [maxTurnableSpeed, isCurveSpeedExceeded]);
+
+
+
 
   // Calculate the driving score based on polled metrics
   const calculateDrivingScore = () => {
@@ -216,7 +279,7 @@ export default function DriverDetailsPage() {
   return (
     <div className="h-full overflow-y-auto bg-gray-50">
       <div className="fixed top-0 z-10 right-0 overflow-hidden max-h-screen w-[300px]">
-        <Toaster position="top-center" toastOptions={{duration: 1000}} />
+        <Toaster position="top-center" toastOptions={{ duration: 1000 }} />
       </div>
       <div className="container mx-auto py-10 px-4 bg-white z-50">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-10 text-center">
@@ -258,14 +321,14 @@ export default function DriverDetailsPage() {
             </div>
           </div>
 
+          {/* Curve Speed Limit Exceeded Card
           <div className="rounded-xl shadow-lg p-4 bg-purple-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Curve Speed Limit </h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Curve Speed Limit Exceeded</h2>
             <div className="text-center">
-              <p className="text-5xl font-bold text-blue-600">
-                {maxTurnableSpeed !== null ? `${maxTurnableSpeed.toFixed(2)} m/s` : "0 m/s"}
-              </p>
+              <p className="text-5xl font-bold text-purple-600">{curveSpeedCount}</p>
             </div>
           </div>
+
           <div className="rounded-xl shadow-lg p-4 bg-blue-100 transition-all transform hover:scale-105">
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Driver Behaviour Score </h2>
             <div className="text-center">
@@ -274,6 +337,16 @@ export default function DriverDetailsPage() {
               </p>
             </div>
           </div>
+          {/* Linear Current Speed Card */}
+          {/* <div className="rounded-xl shadow-lg p-4 bg-indigo-100 transition-all transform hover:scale-105">
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Linear Current Speed</h2>
+            <div className="text-center">
+              <p className="text-5xl font-bold text-indigo-600">
+                {linearSpeed.toFixed(2)} m/s
+              </p>
+            </div>
+          </div> */} 
+
         </div>
 
         {/* Real-Time Metrics from WebSocket */}
