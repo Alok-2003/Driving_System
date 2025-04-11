@@ -12,7 +12,7 @@ const getDriverDetails = () => ({
   phoneNumber: "+91 98765 43210",
   age: 38,
   drivingLicense: "DL1234567890",
-  Score:100,
+  Score: 100,
   trucksAllocated: [
     {
       truckName: "Tata 407",
@@ -53,6 +53,8 @@ export default function DriverDetailsPage() {
   const [rapidAcceleration, setRapidAcceleration] = useState<number | null>(null);
   const [maxTurnableSpeed, setMaxTurnableSpeed] = useState<number | null>(null);
   const [drivingScore, setDrivingScore] = useState<number>(100);
+  const [tripDistance, setTripDistance] = useState<number>(1.2); // Example value in km
+
 
   // New states for additional metrics
   const [rashDriving, setRashDriving] = useState<number>(driver.rashDriving);
@@ -70,7 +72,7 @@ export default function DriverDetailsPage() {
   // State for real-time WebSocket data for gyro (rotation) and acceleration.
   const [gyro, setGyro] = useState({ x: 0, y: 0, z: 0 });
   const [accel, setAccel] = useState({ x: 0, y: 0, z: 0 });
-
+  
   // New states to detect and count rapid acceleration events (threshold 20 m/s²)
   const [rapidAccelCount, setRapidAccelCount] = useState<number>(0);
   const [isHighAccel, setIsHighAccel] = useState<boolean>(false);
@@ -99,6 +101,18 @@ export default function DriverDetailsPage() {
     const intervalId = setInterval(fetchDriverMetrics, 1000);
     return () => clearInterval(intervalId);
   }, []);
+
+  const DrivingScore = () => {
+    const totalViolations = rashDriving + rapidAccelCount + roughVibration + harshBraking + curveSpeedCount;
+    // Penalty = (violations per km) * 10 points
+    const penalty = (totalViolations / tripDistance) * 10;
+    const score = Math.max(0, 100 - penalty);
+    setDrivingScore(score);
+  };
+  useEffect(() => {
+    DrivingScore();
+  }, [rashDriving, rapidAccelCount, roughVibration, harshBraking, curveSpeedCount, tripDistance]);
+
 
   // useEffect to open a WebSocket connection and update gyro/accel in real time
   useEffect(() => {
@@ -282,13 +296,13 @@ export default function DriverDetailsPage() {
       <div className="fixed top-0 z-10 right-0 overflow-hidden max-h-screen w-[300px]">
         <Toaster position="top-center" toastOptions={{ duration: 500 }} />
       </div>
-      <div className="container mx-auto py-10 px-4 bg-white z-50">
+      <div className="container mx-auto py px-4 bg-white z-50">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-10 text-center">
           Driver Details
         </h1>
 
         {/* Metric Cards (from polling data) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Rash Driving Card */}
           <div className="rounded-xl shadow-lg p-4 bg-red-100 transition-all transform hover:scale-105">
             <h2 className="text-xl text-center font-semibold text-gray-700 mb-2">Rash Driving</h2>
@@ -322,7 +336,7 @@ export default function DriverDetailsPage() {
             </div>
           </div>
 
-           {/* Curve Speed Limit Exceeded Card */}
+          {/* Curve Speed Limit Exceeded Card */}
           {/* <div className="rounded-xl shadow-lg p-4 bg-purple-100 transition-all transform hover:scale-105">
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Curve Speed Limit Exceeded</h2>
             <div className="text-center">
@@ -330,26 +344,28 @@ export default function DriverDetailsPage() {
             </div>
           </div> */}
 
-          <div className="rounded-xl shadow-lg p-4 bg-blue-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2">Driver Behaviour Score </h2>
+
+          {/* Linear Current Speed Card */}
+          <div className="rounded-xl shadow-lg p-4 bg-indigo-100 transition-all transform hover:scale-105">
+            <h2 className="text-lg text-center w-full font-semibold text-gray-700 mb-2">Voilated Speed Count</h2>
             <div className="text-center">
-              <p className="text-5xl font-bold text-blue-600">
-               {driver.Score}
+              <p className="text-5xl font-bold text-indigo-600">
+                {linearSpeed}
               </p>
             </div>
           </div>
-          {/* Linear Current Speed Card */}
-          <div className="rounded-xl shadow-lg p-4 bg-indigo-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2">Voilated Speed limit Count</h2>
+
+          <div className="rounded-xl col-span-3 shadow-lg p-4 bg-blue-100 transition-all transform hover:scale-105">
+            <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2">Driver Behaviour Score </h2>
             <div className="text-center">
-              <p className="text-5xl font-bold text-indigo-600">
-                {linearSpeed} 
+              <p className="text-5xl font-bold text-blue-600">
+                {driver.Score}
               </p>
             </div>
           </div>
           {/*  Speed Limit Card */}
           <div className="rounded-xl col-span-2 shadow-lg p-4 bg-indigo-100 transition-all transform hover:scale-105">
-          <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2"> Current Road Speed Limit</h2>
+            <h2 className="text-xl text-center w-full font-semibold text-gray-700 mb-2"> Current Road Speed Limit</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-red-600">
                 {linearSpeed.toFixed(2)} Km/h
