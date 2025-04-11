@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 
 export default function LocationTracker() {
-  const [location, setLocation] = useState(null);
-  const [error, setError] = useState(null);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timestamp, setTimestamp] = useState(null);
+  const [timestamp, setTimestamp] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -26,7 +26,7 @@ export default function LocationTracker() {
       }, 3000);
     };
 
-    const handleSuccess = (position) => {
+    const handleSuccess = (position: GeolocationPosition) => {
       const { latitude, longitude, accuracy } = position.coords;
       setLocation({ latitude, longitude, accuracy });
       setTimestamp(new Date(position.timestamp));
@@ -34,7 +34,7 @@ export default function LocationTracker() {
       setError(null);
     };
 
-    const handleError = (error) => {
+    const handleError = (error: GeolocationPositionError) => {
       console.error("Geolocation error:", error);
       if (
         error.code === error.POSITION_UNAVAILABLE ||

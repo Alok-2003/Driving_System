@@ -1,16 +1,17 @@
 // Sidebar.tsx
 import React, { useState } from 'react';
-import { 
-  ArrowLeft, 
-  LayoutDashboard, 
-  Users, 
-  Truck, 
-  User, 
-  FileText, 
-  MapPin, 
-  Star, 
-  Settings 
+import {
+  ArrowLeft,
+  LayoutDashboard,
+  Users,
+  Truck,
+  User,
+  FileText,
+  MapPin,
+  Star,
+  Settings
 } from 'lucide-react';
+import { useLocation, Link } from 'react-router-dom';
 
 interface NavItem {
   label: string;
@@ -32,16 +33,15 @@ const navItems: NavItem[] = [
 
 const Sidebar: React.FC = () => {
   const [isMinimized, setIsMinimized] = useState(true);
-
+  const location = useLocation();
   const toggleSidebar = () => {
     setIsMinimized((prev) => !prev);
   };
 
   return (
     <div
-      className={`relative border-r bg-white text-black h-screen pt-8 transition-all duration-300 ${
-        isMinimized ? 'w-20' : 'w-64'
-      }`}
+      className={`relative border-r bg-white text-black h-screen pt-8 transition-all duration-300 ${isMinimized ? 'w-20' : 'w-64'
+        }`}
     >
       {/* Toggle Button in the top-right corner */}
       <div
@@ -55,26 +55,27 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation Items */}
-      <ul className="mt-10 space-y-2">
-        {navItems.map((item) => (
-          <li key={item.href}>
-            <a
-              href={item.href}
-              className="flex items-center gap-4 px-4 py-2 hover:bg-gray-100 transition-colors"
-            >
-              <span>{item.icon}</span>
-              {!isMinimized && <span className="text-sm font-medium">{item.label}</span>}
-            </a>
-          </li>
-        ))}
+      <ul className="space-y-2">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.href; // or use startsWith if needed
+          return (
+            <li className="mx-3" key={item.href}>
+              <Link
+                to={item.href}
+                className={`flex items-center gap-4 px-4 py-2 transition-colors ${isActive
+                    ? 'bg-blue-500 rounded-xl text-white'
+                    : 'text-gray-800 hover:bg-gray-100'
+                  }`}
+              >
+                <span>{item.icon}</span>
+                {!isMinimized && <span className="text-sm font-medium">{item.label}</span>}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
 
-      {/* "hi" at the bottom left */}
-      {!isMinimized && (
-        <div className="absolute bottom-4 left-4">
-          <p>hi</p>
-        </div>
-      )}
+  
     </div>
   );
 };

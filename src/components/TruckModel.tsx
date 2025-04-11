@@ -1,19 +1,24 @@
-// TruckModel.jsx
-import  { useRef } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
+import * as THREE from 'three';
 
-const TruckModel = ({ gyro }) => {
-  const truckRef = useRef();
-  const { scene } = useGLTF('/truck2.glb');
+interface TruckModelProps {
+  gyro: { x: number; y: number; z: number };
+}
+
+const TruckModel: React.FC<TruckModelProps> = ({ gyro }) => {
+  // Type the truckRef as a generic THREE.Object3D or THREE.Group
+  const truckRef = useRef<THREE.Object3D>(null);
+
+  // Cast the returned scene from useGLTF to a THREE.Group type
+  const { scene } = useGLTF('/truck2.glb') as { scene: THREE.Group };
 
   // Optionally adjust the model’s scale and position
   scene.scale.set(1, 1, 1);
   scene.position.set(0, 0, 0);
 
-  // Update the truck's rotation with the gyro values each frame.
-  // Here we assume the gyro data is in radians.
-  // You might want to smooth or scale these values depending on your data.
+  // Update the truck's rotation using the gyro data each frame
   useFrame(() => {
     if (truckRef.current) {
       truckRef.current.rotation.x = gyro.x * 1.6;
