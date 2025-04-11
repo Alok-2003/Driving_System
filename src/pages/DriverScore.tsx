@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { toast, Toaster } from "react-hot-toast";
 
 // Dummy driver data function – no route params
 const getDriverDetails = () => ({
@@ -54,6 +55,10 @@ export default function DriverDetailsPage() {
   // State for real-time WebSocket data for gyro (rotation) and acceleration.
   const [gyro, setGyro] = useState({ x: 0, y: 0, z: 0 });
   const [accel, setAccel] = useState({ x: 0, y: 0, z: 0 });
+
+  // New states to detect and count rapid acceleration events (threshold 20 m/s²)
+  const [rapidAccelCount, setRapidAccelCount] = useState<number>(0);
+  const [isHighAccel, setIsHighAccel] = useState<boolean>(false);
 
   // useEffect to poll metrics from data.json every second
   useEffect(() => {
@@ -135,6 +140,20 @@ export default function DriverDetailsPage() {
     };
   }, []);
 
+  // useEffect to check for high acceleration events (magnitude > 20 m/s²)
+  useEffect(() => {
+    // Compute acceleration magnitude
+    const magnitude = Math.sqrt(accel.x ** 2 + accel.y ** 2 + accel.z ** 2);
+    if (magnitude > 40 && !isHighAccel) {
+      setRapidAccelCount((prev) => prev + 1);
+      toast.error("High acceleration detected!");
+      setIsHighAccel(true);
+    } else if (magnitude <= 20 && isHighAccel) {
+      // Reset flag once acceleration drops below threshold
+      setIsHighAccel(false);
+    }
+  }, [accel, isHighAccel]);
+
   // Calculate the driving score based on polled metrics
   const calculateDrivingScore = () => {
     let score = 100;
@@ -154,6 +173,7 @@ export default function DriverDetailsPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-gray-50">
+      <Toaster position="top-right" />
       <div className="container mx-auto py-10 px-4">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-10 text-center">
           Driver Details
@@ -171,7 +191,7 @@ export default function DriverDetailsPage() {
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Rapid Acceleration</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-yellow-600">
-                {rapidAcceleration !== null ? rapidAcceleration : driver.rapidAcceleration}
+                {rapidAccelCount}
               </p>
             </div>
           </div>
