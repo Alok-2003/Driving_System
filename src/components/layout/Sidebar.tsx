@@ -31,7 +31,7 @@ const navItems: NavItem[] = [
 ];
 
 const Sidebar: React.FC = () => {
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
 
   const toggleSidebar = () => {
     setIsMinimized((prev) => !prev);

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast, Toaster } from "react-hot-toast";
+import TruckPage from "./TruckPage";
 
 // Dummy driver data function – no route params
 const getDriverDetails = () => ({
@@ -51,6 +52,12 @@ export default function DriverDetailsPage() {
   const [rapidAcceleration, setRapidAcceleration] = useState<number | null>(null);
   const [maxTurnableSpeed, setMaxTurnableSpeed] = useState<number | null>(null);
   const [drivingScore, setDrivingScore] = useState<number>(100);
+
+  // New states for additional metrics
+  const [rashDriving, setRashDriving] = useState<number>(driver.rashDriving);
+  const [roughVibration, setRoughVibration] = useState<number>(0);
+  const [harshBraking, setHarshBraking] = useState<number>(driver.hardBrake);
+  const lastBrakingToastTime = useRef<number>(0);
 
   // State for real-time WebSocket data for gyro (rotation) and acceleration.
   const [gyro, setGyro] = useState({ x: 0, y: 0, z: 0 });
@@ -154,6 +161,41 @@ export default function DriverDetailsPage() {
     }
   }, [accel, isHighAccel]);
 
+  useEffect(() => {
+    // Threshold for detecting a wavy (snake-like) motion for rash driving
+    const rashThreshold = 0.5; // example threshold in radians
+    if (Math.abs(gyro.x) > rashThreshold || Math.abs(gyro.y) > rashThreshold) {
+      // Increment rash driving count if threshold is exceeded
+      setRashDriving(prev => prev + 1);
+      toast("Rash driving detected!", { icon: "🚗" });
+    }
+  }, [gyro]);
+
+  useEffect(() => {
+    // Threshold for slight but repetitive vibrations
+    const vibrationLowerThreshold = 10;
+    const vibrationUpperThreshold = 15; // prevent counting strong impacts
+    if (
+      Math.abs(accel.z) >= vibrationLowerThreshold &&
+      Math.abs(accel.z) <= vibrationUpperThreshold
+    ) {
+      setRoughVibration(prev => prev + 1);
+      toast("Rough road vibration detected!", { icon: "🛣️" });
+    }
+  }, [accel.z]);
+
+  useEffect(() => {
+    const brakingThreshold = -5; // If accel.x is less than -5 m/s², consider it harsh braking
+    if (accel.x < brakingThreshold) {
+      const now = Date.now();
+      if (now - lastBrakingToastTime.current > 2000) { // 2 seconds delay
+        lastBrakingToastTime.current = now;
+        setHarshBraking(prev => prev + 1);
+        toast("Harsh braking detected!", { icon: "🚨" });
+      }
+    }
+  }, [accel.x]);
+
   // Calculate the driving score based on polled metrics
   const calculateDrivingScore = () => {
     let score = 100;
@@ -173,41 +215,62 @@ export default function DriverDetailsPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-gray-50">
-      <Toaster position="top-right" />
-      <div className="container mx-auto py-10 px-4">
+      <div className="fixed top-0 z-10 right-0 overflow-hidden max-h-screen w-[300px]">
+        <Toaster position="top-center" toastOptions={{duration: 1000}} />
+      </div>
+      <div className="container mx-auto py-10 px-4 bg-white z-50">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-10 text-center">
           Driver Details
         </h1>
 
         {/* Metric Cards (from polling data) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Rash Driving Card */}
           <div className="rounded-xl shadow-lg p-4 bg-red-100 transition-all transform hover:scale-105">
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Rash Driving</h2>
             <div className="text-center">
-              <p className="text-5xl font-bold text-red-600">{driver.rashDriving}</p>
+              <p className="text-5xl font-bold text-red-600">{rashDriving}</p>
             </div>
           </div>
+
           <div className="rounded-xl shadow-lg p-4 bg-yellow-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Rapid Acceleration</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Harsh Acceleration</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-yellow-600">
                 {rapidAccelCount}
               </p>
             </div>
           </div>
+          {/* Rough Road Vibration Card */}
+          <div className="rounded-xl shadow-lg p-4 bg-green-100 transition-all transform hover:scale-105">
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Rough Road Vibration</h2>
+            <div className="text-center">
+              <p className="text-5xl font-bold text-green-600">{roughVibration}</p>
+            </div>
+          </div>
+          {/* Harsh Braking Card */}
           <div className="rounded-xl shadow-lg p-4 bg-orange-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Hard Brake</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Harsh Braking</h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-orange-600">
-                {hardBrake !== null ? hardBrake : driver.hardBrake}
+                {harshBraking}
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-xl shadow-lg p-4 bg-purple-100 transition-all transform hover:scale-105">
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Curve Speed Limit </h2>
+            <div className="text-center">
+              <p className="text-5xl font-bold text-blue-600">
+                {maxTurnableSpeed !== null ? `${maxTurnableSpeed.toFixed(2)} m/s` : "0 m/s"}
               </p>
             </div>
           </div>
           <div className="rounded-xl shadow-lg p-4 bg-blue-100 transition-all transform hover:scale-105">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Max Turnable Speed</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Driver Behaviour Score </h2>
             <div className="text-center">
               <p className="text-5xl font-bold text-blue-600">
-                {maxTurnableSpeed !== null ? `${maxTurnableSpeed.toFixed(2)} m/s` : "0 m/s"}
+                0
               </p>
             </div>
           </div>
@@ -247,6 +310,12 @@ export default function DriverDetailsPage() {
             </div>
           </div>
         </div>
+
+        <div className="border border-black rounded-xl m-2">
+          <TruckPage />
+        </div>
+
+
 
         {/* Personal Information and Allocated Trucks */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
