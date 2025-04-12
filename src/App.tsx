@@ -6,6 +6,7 @@ import DriverDetailsPage from './pages/DriverScore';
 import VehicleTracking from './pages/VehicleTracking';
 import LocationTracker from './pages/LocationTracker';
 import VehicleRegistrationForm from './pages/RegisterNewVehicle';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -15,7 +16,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Layout />}>
           <Route path="vehicle-tracking" element={<VehicleTracking />} />
-          {/* You can add additional dashboard routes here */}
+          <Route path="home" element={<Dashboard />} />
           <Route path="form" element={<UserForm />} />
           <Route path="driver-score" element={<DriverDetailsPage />} />
           <Route path="register-new-vehicle" element={<VehicleRegistrationForm />} />
