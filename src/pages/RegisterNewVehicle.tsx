@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
 import QRScanner from '../components/QRScanner'
 import toast from 'react-hot-toast'
 
