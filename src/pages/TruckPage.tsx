@@ -10,7 +10,10 @@ const TruckPage = () => {
   const [accel, setAccel] = useState({ x: 0, y: 0, z: 0 });
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080'); // WebSocket server address
+    const wsHost = window.location.hostname; // Get the current hostname
+    const wsUrl = `ws://${wsHost}:8080`; // Correctly formatted template literal
+    const ws = new WebSocket(wsUrl);
+    console.log(`WebSocket connecting to ${wsUrl}`);
 
     ws.onopen = () => {
       console.log('Connected to WebSocket server');
@@ -64,7 +67,10 @@ const TruckPage = () => {
   }, []);
 
   return (
-    <Canvas style={{ width: '83.68vw', height: '70vh',backgroundColor:'lightblue',borderRadius:12 }} camera={{ position: [-500, 150, 0], fov: 90 }}>
+    <Canvas
+      style={{ width: '83.68vw', height: '70vh', backgroundColor: 'lightblue', borderRadius: 12 }}
+      camera={{ position: [-500, 150, 0], fov: 90 }}
+    >
       {/* Basic lighting */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />

@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
   { label: 'Truck Allocation', href: '/dashboard/truck-allocation', icon: <Truck size={20} /> },
   { label: 'Vehicle Tracking', href: '/dashboard/vehicle-tracking', icon: <MapPin size={20} /> },
   { label: 'Driver Score', href: '/dashboard/driver-score', icon: <Star size={20} /> },
-  { label: 'Settings', href: '/dashboard/settings', icon: <Settings size={20} /> },
+  // { label: 'Settings', href: '/dashboard/settings', icon: <Settings size={20} /> },
 ];
 
 const Sidebar: React.FC = () => {

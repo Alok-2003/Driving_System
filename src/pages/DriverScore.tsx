@@ -115,79 +115,62 @@ export default function DriverDetailsPage() {
 
 
   // useEffect to open a WebSocket connection and update gyro/accel in real time
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080");
-
-    ws.onopen = () => {
-      console.log("Connected to WebSocket server");
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("Received WebSocket data:", data);
-        // Check for gyro/rotation – we use whichever is provided:
-        if (
-          data.gyro &&
-          typeof data.gyro.x === "number" &&
-          typeof data.gyro.y === "number" &&
-          typeof data.gyro.z === "number"
-        ) {
-          setGyro(data.gyro);
-        } else if (
-          data.rotation &&
-          typeof data.rotation.x === "number" &&
-          typeof data.rotation.y === "number" &&
-          typeof data.rotation.z === "number"
-        ) {
-          setGyro(data.rotation);
-        }
-        // Update acceleration if available
-        if (
-          data.accel &&
-          typeof data.accel.x === "number" &&
-          typeof data.accel.y === "number" &&
-          typeof data.accel.z === "number"
-        ) {
-          setAccel(data.accel);
-        }
-        // Update coordinate and compute speed if "coord" is provided in the incoming data
-        if (
-          data.coord &&
-          typeof data.coord.x === "number" &&
-          typeof data.coord.y === "number"
-        ) {
-          const now = Date.now();
-          if (prevCoord) {
-            const dt = (now - prevCoord.time) / 1000; // time difference in seconds
-            const dx = data.coord.x - prevCoord.x;
-            const dy = data.coord.y - prevCoord.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            // Calculate speed in m/s (adjust units as needed)
-            const speed = dt > 0 ? distance / dt : 0;
-            setLinearSpeed(speed);
+   useEffect(() => {
+      const wsHost = window.location.hostname; // Get the current hostname
+      const wsUrl = `ws://${wsHost}:8080`; // Correctly formatted template literal
+      const ws = new WebSocket(wsUrl);
+      console.log(`WebSocket connecting to ${wsUrl}`);
+  
+      ws.onopen = () => {
+        console.log('Connected to WebSocket server');
+      };
+  
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('Received WebSocket data:', data);
+          // Check for both possible properties: "gyro" or "rotation"
+          if (
+            data.gyro &&
+            typeof data.gyro.x === 'number' &&
+            typeof data.gyro.y === 'number' &&
+            typeof data.gyro.z === 'number'
+          ) {
+            setGyro(data.gyro);
+          } else if (
+            data.rotation &&
+            typeof data.rotation.x === 'number' &&
+            typeof data.rotation.y === 'number' &&
+            typeof data.rotation.z === 'number'
+          ) {
+            setGyro(data.rotation);
           }
-          // Update previous coordinate with the latest coordinate and timestamp
-          setPrevCoord({ x: data.coord.x, y: data.coord.y, time: now });
+          // Update accel state if valid data is received
+          if (
+            data.accel &&
+            typeof data.accel.x === 'number' &&
+            typeof data.accel.y === 'number' &&
+            typeof data.accel.z === 'number'
+          ) {
+            setAccel(data.accel);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, []);
+      };
+  
+      ws.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+  
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+  
+      return () => {
+        ws.close();
+      };
+    }, []);
   const lastAccelToastTime = useRef<number>(0);
   // useEffect to check for high acceleration events (magnitude > 20 m/s²)
   useEffect(() => {

@@ -51,76 +51,105 @@ export default function VehicleRegistrationForm() {
 
   return (
     <div>
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 py-20">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-          <h2 className="text-2xl font-bold text-center mb-6">Link Device with Vehicle</h2>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4 py-10">
+        <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">🔗 Link Device with Vehicle</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Device ID */}
             <div>
-              <label htmlFor="deviceId">Device ID</label>
-              <div className="flex gap-2 items-center">
+              <label htmlFor="deviceId" className="block text-sm font-medium text-gray-700 mb-1">
+                Device ID
+              </label>
+              <div className="flex gap-3">
                 <input
                   id="deviceId"
                   value={deviceId}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeviceId(e.target.value)}
                   placeholder="Enter Device ID"
+                  className="flex-1 px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-
                 <button
                   type="button"
                   onClick={() => setScanning(true)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                 >
                   Scan QR
                 </button>
               </div>
             </div>
-            <div className="text-xs text-gray-500 mt-2">
-              Current Device ID: <code>{deviceId}</code>
-            </div>
 
+            {/* Vehicle Number */}
             <div>
-              <label htmlFor="vehicleNumber">Vehicle Number</label>
+              <label htmlFor="vehicleNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                Vehicle Number
+              </label>
               <input
                 id="vehicleNumber"
                 value={vehicleNumber}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVehicleNumber(e.target.value)}
                 placeholder="Enter Vehicle Number"
+                className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            <button type="button" onClick={verifyDetails} disabled={isVerified}>
-              {isVerified ? "Verified" : "Verify Details"}
-            </button>
+            {/* Verify Button */}
+            <div>
+              <button
+                type="button"
+                onClick={verifyDetails}
+                disabled={isVerified}
+                className={`w-full py-2 px-4 text-white rounded-md transition ${isVerified ? 'bg-green-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+                  }`}
+              >
+                {isVerified ? "✅ Verified" : "Verify Details"}
+              </button>
+            </div>
 
+            {/* Verified Details */}
             {isVerified && ulipDl && (
-              <div className='mb-10'>
-                <h1 className='font-bold text-xl underline mb-4'>Verify Details</h1>
-                <p>Driver Full Name : {ulipDl.rc_owner_name}</p>
-                <p>Registration Number : {ulipDl.rc_regn_no}</p>
-                <p>Registration Date : {ulipDl.rc_regn_dt}</p>
-                <p>Registration upto : {ulipDl.rc_regn_upto}</p>
-                <p>Chasi Number : {ulipDl.rc_chasi_no}</p>
-                <p>Engine Number : {ulipDl.rc_eng_no}</p>
-                <p>Maker: {ulipDl.rc_maker_desc}</p>
-                <p>Insurance Policy Number : {ulipDl.rc_insurance_policy_no}</p>
-                <p>Insurance Upto : {ulipDl.rc_insurance_upto}</p>
-                <p>Status : {ulipDl.rc_status}</p>
-                <p>Vehicle Category : {ulipDl.rc_vch_catg_desc}</p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+                <h3 className="text-lg font-semibold text-green-700 underline mb-3">Vehicle Details</h3>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li><strong>Driver Name:</strong> {ulipDl.rc_owner_name}</li>
+                  <li><strong>Reg. Number:</strong> {ulipDl.rc_regn_no}</li>
+                  <li><strong>Reg. Date:</strong> {ulipDl.rc_regn_dt}</li>
+                  <li><strong>Valid Upto:</strong> {ulipDl.rc_regn_upto}</li>
+                  <li><strong>Chassis No:</strong> {ulipDl.rc_chasi_no}</li>
+                  <li><strong>Engine No:</strong> {ulipDl.rc_eng_no}</li>
+                  <li><strong>Maker:</strong> {ulipDl.rc_maker_desc}</li>
+                  <li><strong>Insurance No:</strong> {ulipDl.rc_insurance_policy_no}</li>
+                  <li><strong>Insurance Upto:</strong> {ulipDl.rc_insurance_upto}</li>
+                  <li><strong>Status:</strong> {ulipDl.rc_status}</li>
+                  <li><strong>Category:</strong> {ulipDl.rc_vch_catg_desc}</li>
+                </ul>
               </div>
             )}
 
-            <div className="flex flex-wrap gap-4">
-              <button type="submit">Register</button>
-              <button type="button" className='text-sm' >Stop Registration</button>
+            {/* Action Buttons */}
+            <div className="flex flex-wrap  gap-4 justify-between pt-4">
+              <button
+                type="submit"
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+              >
+                Register
+              </button>
+              <button
+                type="button"
+                className="px-6 py-2 bg-red-100 text-red-600 border border-red-300 rounded-md hover:bg-red-200 transition"
+              >
+                Stop Registration
+              </button>
             </div>
           </form>
         </div>
       </div>
 
+
       {scanning && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center">
           <div className="relative w-[320px] h-[320px] rounded-lg bg-white p-4 shadow-xl">
-            
+
             <QRScanner
               onScanSuccess={(text) => {
                 console.log("✅ Scanned:", text);
