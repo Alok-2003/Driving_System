@@ -64,7 +64,7 @@ const TruckPage = () => {
   }, []);
 
   return (
-    <Canvas style={{ width: '83.68vw', height: '100vh',backgroundColor:'lightblue',borderRadius:12 }} camera={{ position: [-500, 150, 0], fov: 90 }}>
+    <Canvas style={{ width: '83.68vw', height: '70vh',backgroundColor:'lightblue',borderRadius:12 }} camera={{ position: [-500, 150, 0], fov: 90 }}>
       {/* Basic lighting */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />

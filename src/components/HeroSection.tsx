@@ -10,7 +10,7 @@ export default function HeroSection() {
         backgroundImage: `url('https://mehtatransportcorporations.com/wp-content/uploads/2023/11/Blog-EasyHaul-Modes-of-Transport-Title-1.png')`,
       }}
     >
-      <div className="relative bg-[url(https://img.freepik.com/free-photo/transport-logistics-products_23-2151541856.jpg?t=st=1744183880~exp=1744187480~hmac=9416c2dd449f862062e3f410499f664daa2a94bb54c50ccb0fc8de13e1ea7172&w=2000)] z-10 flex flex-col justify-center px-20 text-white h-full">
+      <div className="relative bg-[url(/transport.jpg)] bg-cover z-10 flex flex-col justify-center px-20 text-white h-full">
         <div className="w-[38rem]">
           <motion.h1
             initial={{ opacity: 0, y: -50 }}

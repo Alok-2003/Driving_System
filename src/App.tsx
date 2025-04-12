@@ -5,6 +5,7 @@ import UserForm from './pages/UserForm';
 import DriverDetailsPage from './pages/DriverScore';
 import VehicleTracking from './pages/VehicleTracking';
 import LocationTracker from './pages/LocationTracker';
+import VehicleRegistrationForm from './pages/RegisterNewVehicle';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           {/* You can add additional dashboard routes here */}
           <Route path="form" element={<UserForm />} />
           <Route path="driver-score" element={<DriverDetailsPage />} />
+          <Route path="register-new-vehicle" element={<VehicleRegistrationForm />} />
           <Route path="test" element={<LocationTracker />} />
         </Route>
       </Routes>

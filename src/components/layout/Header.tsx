@@ -76,7 +76,7 @@ export default function Header() {
         transition={{ duration: 0.7, delay: 0.4 }}
       >
         <button>
-          <a href={'/dashboard/home'}>Get Started</a>
+          <a href={'/dashboard/form'}>Get Started</a>
         </button>
       </motion.div>
     </header>
